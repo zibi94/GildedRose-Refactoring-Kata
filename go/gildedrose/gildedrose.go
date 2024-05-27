@@ -2,14 +2,14 @@ package gildedrose
 
 const (
 	// Quality extremes.
-	MaxQuality = 50
-	MinQuality = 0
+	maxQuality = 50
+	minQuality = 0
 
 	// Items which need custom quality handling.
-	AgedBrie        = "Aged Brie"
-	BackstagePasses = "Backstage passes to a TAFKAL80ETC concert"
-	Sulfuras        = "Sulfuras, Hand of Ragnaros"
-	Conjured        = "Conjured Mana Cake" // New item.
+	agedBrie        string = "Aged Brie"
+	backstagePasses string = "Backstage passes to a TAFKAL80ETC concert"
+	sulfuras        string = "Sulfuras, Hand of Ragnaros"
+	conjured        string = "Conjured Mana Cake" // New item.
 )
 
 type Item struct {
@@ -17,88 +17,36 @@ type Item struct {
 	SellIn, Quality int
 }
 
+// Handle choose handler by name and execute.
+// If there is no custom handler for item use default handler.
+func (i *Item) handle() {
+	if fn, ok := handlers[i.Name]; ok {
+		fn(i)
+	} else {
+		defaultHandler(i)
+	}
+}
+
 // The method sets the minimum and maximum quality if the value exceeds the extreme values.
 func (i *Item) alignQuality() {
-	if i.Quality < MinQuality {
-		i.Quality = MinQuality
+	if i.Quality < minQuality {
+		i.Quality = minQuality
 	}
-	if i.Quality > MaxQuality {
-		i.Quality = MaxQuality
+	if i.Quality > maxQuality {
+		i.Quality = maxQuality
 	}
 }
 
+// UpdateQuality decrease expiration date and quality.
+// The function should be used at the end of the day because it lowers the expiration date
+// and recalculates the quality to the next day.
+// Also func support custom handling for items:
+// - "Aged Brie";
+// - "Backstage passes to a TAFKAL80ETC concert";
+// - "Sulfuras, Hand of Ragnaros"
+// - "Conjured Mana Cake".
 func UpdateQuality(items []*Item) {
 	for i := range items {
-		if fn, ok := handlers[items[i].Name]; ok {
-			fn(items[i])
-		} else {
-			defaultHandler(items[i])
-		}
+		items[i].handle()
 	}
-
-}
-
-// Custom handlers.
-var handlers = map[string]func(i *Item){
-	AgedBrie: func(i *Item) {
-		i.SellIn--
-		i.Quality++
-		i.alignQuality()
-	},
-
-	BackstagePasses: func(i *Item) {
-		if i.Quality == 0 {
-			return
-		}
-
-		if i.SellIn <= 0 {
-			i.Quality = 0
-			return
-		}
-
-		if i.SellIn <= 10 {
-			i.Quality++
-		}
-
-		if i.SellIn <= 5 {
-			i.Quality++
-		}
-
-		i.Quality++
-		i.alignQuality()
-	},
-
-	Sulfuras: func(i *Item) {
-		// Legendary item - never has to be sold or decreases in Quality.
-	},
-
-	Conjured: func(i *Item) {
-		i.SellIn--
-		if i.Quality == 0 {
-			return
-		}
-
-		i.Quality -= 2
-		i.alignQuality()
-	},
-}
-
-// Default handler.
-func defaultHandler(i *Item) {
-	// Fix foo item name.
-	if i.Name == "foo" {
-		i.Name = "fixme"
-	}
-
-	i.SellIn--
-	if i.Quality == 0 {
-		return
-	}
-
-	if i.SellIn <= 0 {
-		i.Quality--
-	}
-
-	i.Quality--
-	i.alignQuality()
 }
