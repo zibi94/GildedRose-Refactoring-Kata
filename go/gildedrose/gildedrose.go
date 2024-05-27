@@ -59,6 +59,7 @@ var handlers = map[string]func(i *Item){
 		if i.SellIn <= 10 {
 			i.Quality++
 		}
+
 		if i.SellIn <= 5 {
 			i.Quality++
 		}
