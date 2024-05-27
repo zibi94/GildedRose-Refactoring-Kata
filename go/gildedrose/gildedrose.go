@@ -47,7 +47,6 @@ var handlers = map[string]func(i *Item){
 	},
 
 	BackstagePasses: func(i *Item) {
-		i.SellIn -= 1
 		if i.Quality == 0 {
 			return
 		}
@@ -90,7 +89,7 @@ func defaultHandler(i *Item) {
 		i.Name = "fixme"
 	}
 
-	i.SellIn -= 1
+	i.SellIn--
 	if i.Quality == 0 {
 		return
 	}
